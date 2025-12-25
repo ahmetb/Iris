@@ -31,10 +31,14 @@ Install via Homebrew using the personal tap:
 
 ```bash
 brew tap ahmetb/iris https://github.com/ahmetb/Iris
-brew install --cask iris
+brew install --cask ahmetb/iris/iris
 ```
 
-This method handles the Gatekeeper bypass automatically.
+⚠️ **macOS will show a warning about the unsigned application binary**. This is normal for open-source apps distributed outside the Mac App Store. To solve this:
+
+1. **First launch**: Right-click (or Control-click) on Iris.app and select "Open"
+2. Click "Open" in the security dialog.
+3. If this doesn't fix your problem, go to `System Settings` search for `Gatekeeper` (which should be under "Privacy & Security" section) and you can see an option to allow "Iris" app to run there under the "Security" section.
 
 ### Manual Download
 

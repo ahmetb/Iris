@@ -166,8 +166,13 @@ Users can install via Homebrew:
 
 ```bash
 brew tap ahmetb/iris https://github.com/ahmetb/Iris
-brew install --cask iris
+brew install --cask ahmetb/iris/iris
 ```
+
+⚠️ **macOS will show a warning about the unsigned application binary**. Users will need to:
+1. Right-click (or Control-click) on Iris.app and select "Open" on first launch
+2. Click "Open" in the security dialog
+3. If needed, go to System Settings > Privacy & Security > Gatekeeper to allow the app
 
 Or if submitted to `homebrew/cask` (future):
 
