@@ -93,15 +93,40 @@ jobs:
 
       - name: Commit cask update
         run: |
-          # Determine default branch
-          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@' || echo "main")
+          # Determine default branch - try multiple methods
+          DEFAULT_BRANCH=""
+          if git symbolic-ref refs/remotes/origin/HEAD >/dev/null 2>&1; then
+            DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          elif git show-ref --verify --quiet refs/remotes/origin/main; then
+            DEFAULT_BRANCH="main"
+          elif git show-ref --verify --quiet refs/remotes/origin/master; then
+            DEFAULT_BRANCH="master"
+          else
+            DEFAULT_BRANCH="main"
+          fi
+
           echo "Default branch: $DEFAULT_BRANCH"
 
           # Checkout default branch to commit the cask update
-          git checkout "$DEFAULT_BRANCH" || git checkout main || git checkout master || {
+          if git checkout "$DEFAULT_BRANCH" 2>/dev/null; then
+            echo "Checked out $DEFAULT_BRANCH"
+          elif git checkout main 2>/dev/null; then
+            DEFAULT_BRANCH="main"
+            echo "Checked out main"
+          elif git checkout master 2>/dev/null; then
+            DEFAULT_BRANCH="master"
+            echo "Checked out master"
+          else
             echo "Warning: Could not checkout default branch, skipping cask update commit"
             exit 0
-          }
+          fi
+
+          # Verify we have a valid branch name
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "HEAD" ]; then
+            echo "Warning: Not on a valid branch, skipping cask update commit"
+            exit 0
+          fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -111,7 +136,7 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Update Homebrew cask to ${{ steps.version.outputs.version }}"
-            git push origin "$DEFAULT_BRANCH"
+            git push origin "$CURRENT_BRANCH"
           fi
 
       - name: Create GitHub Release
