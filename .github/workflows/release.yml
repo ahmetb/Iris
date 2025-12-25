@@ -124,6 +124,19 @@ jobs:
           body: |
             ## Installation
 
+            ### Homebrew (Recommended)
+
+            Install via Homebrew using the personal tap:
+
+            ```bash
+            brew tap ahmetb/iris
+            brew install --cask iris
+            ```
+
+            This method handles the Gatekeeper bypass automatically.
+
+            ### Manual Download
+
             1. Download `Iris-${{ github.ref_name }}.zip` below
             2. Unzip the file
             3. Move `Iris.app` to your Applications folder

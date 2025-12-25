@@ -36,7 +36,7 @@ brew install --cask iris
 
 This method handles the Gatekeeper bypass automatically.
 
-### Download Pre-built App
+### Manual Download
 
 1. Download the latest `Iris-vX.X.X.zip` from the [Releases](../../releases) page
 2. Unzip the file
