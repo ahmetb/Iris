@@ -25,6 +25,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarController.setupMenuBar()
         debugLog("Menu bar setup complete")
 
+        HotkeyManager.shared.setToggleAction { [weak self] in
+            self?.menuBarController.toggleWindow()
+        }
+        HotkeyManager.shared.startMonitoring()
+        debugLog("HotkeyManager initialized")
+
         // Request camera permission and setup
         Task {
             do {
@@ -76,6 +82,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             PreferencesManager.shared.windowVisible = window.isVisible
             PreferencesManager.shared.windowPosition = window.frame.origin
         }
+
+        // Cleanup hotkey handler
+        HotkeyManager.shared.stopMonitoring()
 
         // Cleanup camera resources
         cameraManager?.stopSession()

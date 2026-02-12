@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import Cocoa
 
 class PreferencesManager {
 
@@ -18,6 +19,9 @@ class PreferencesManager {
         static let launchAtLogin = "com.iris.app.launchAtLogin"
         static let mirrorView = "com.iris.app.mirrorView"
         static let firstLaunch = "com.iris.app.firstLaunch"
+        static let toggleHotkeyEnabled = "com.iris.app.toggleHotkeyEnabled"
+        static let toggleHotkeyKeyCode = "com.iris.app.toggleHotkeyKeyCode"
+        static let toggleHotkeyModifiers = "com.iris.app.toggleHotkeyModifiers"
     }
 
     // MARK: - Window Size
@@ -110,6 +114,44 @@ class PreferencesManager {
         set {
             // Set to true means it's NOT first launch anymore
             defaults.set(!newValue, forKey: Keys.firstLaunch)
+        }
+    }
+
+    // MARK: - Toggle Hotkey
+    var toggleHotkeyEnabled: Bool {
+        get {
+            defaults.bool(forKey: Keys.toggleHotkeyEnabled)
+        }
+        set {
+            defaults.set(newValue, forKey: Keys.toggleHotkeyEnabled)
+        }
+    }
+
+    var toggleHotkeyKeyCode: UInt16 {
+        get {
+            // Use object(forKey:) to distinguish nil from stored 0
+            // keyCode 0 is the 'A' key, which is valid
+            if defaults.object(forKey: Keys.toggleHotkeyKeyCode) == nil {
+                return 34 // Default to 'I' key
+            }
+            return UInt16(defaults.integer(forKey: Keys.toggleHotkeyKeyCode))
+        }
+        set {
+            defaults.set(Int(newValue), forKey: Keys.toggleHotkeyKeyCode)
+        }
+    }
+
+    var toggleHotkeyModifiers: UInt {
+        get {
+            // Use object(forKey:) to distinguish nil from stored 0
+            if defaults.object(forKey: Keys.toggleHotkeyModifiers) == nil {
+                // Default to Alt+Shift (NSEvent.ModifierFlags.option | .shift)
+                return UInt(NSEvent.ModifierFlags.option.rawValue | NSEvent.ModifierFlags.shift.rawValue)
+            }
+            return UInt(defaults.integer(forKey: Keys.toggleHotkeyModifiers))
+        }
+        set {
+            defaults.set(Int(newValue), forKey: Keys.toggleHotkeyModifiers)
         }
     }
 

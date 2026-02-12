@@ -36,6 +36,7 @@ class MenuBarController: NSObject {
     private var cameraManager: CameraManager
     private var audioManager: AudioManager?
     private var currentIconStyle: MenuBarIconStyle = .almondEye
+    private var hotkeyRecorderPanel: NSPanel?
 
     // MARK: - Initialization
     init(cameraManager: CameraManager) {
@@ -583,6 +584,11 @@ class MenuBarController: NSObject {
         iconMenuItem.submenu = iconSubmenu
         menu.addItem(iconMenuItem)
 
+        let hotkeyMenuItem = NSMenuItem(title: "Toggle Hotkey", action: nil, keyEquivalent: "")
+        let hotkeySubmenu = createHotkeySubmenu()
+        hotkeyMenuItem.submenu = hotkeySubmenu
+        menu.addItem(hotkeyMenuItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // Quit
@@ -715,6 +721,34 @@ class MenuBarController: NSObject {
         return menu
     }
 
+    private func createHotkeySubmenu() -> NSMenu {
+        let menu = NSMenu()
+
+        let isEnabled = PreferencesManager.shared.toggleHotkeyEnabled
+        let currentHotkey = HotkeyManager.shared.currentHotkeyDisplayString()
+
+        let enabledItem = NSMenuItem(
+            title: isEnabled ? "Enabled (\(currentHotkey))" : "Disabled",
+            action: #selector(toggleHotkeyEnabled),
+            keyEquivalent: ""
+        )
+        enabledItem.target = self
+        enabledItem.state = isEnabled ? .on : .off
+        menu.addItem(enabledItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let recordItem = NSMenuItem(
+            title: "Record Hotkey...",
+            action: #selector(showHotkeyRecorderPanel),
+            keyEquivalent: ""
+        )
+        recordItem.target = self
+        menu.addItem(recordItem)
+
+        return menu
+    }
+
     // MARK: - Actions
     @objc func statusItemClicked(_ sender: Any?) {
         guard let event = NSApp.currentEvent else {
@@ -794,6 +828,88 @@ class MenuBarController: NSObject {
         currentIconStyle = style
         updateMenuBarIcon()
         debugLog("Icon style changed to: \(style.displayName)")
+    }
+
+    @objc func toggleHotkeyEnabled() {
+        let newValue = !PreferencesManager.shared.toggleHotkeyEnabled
+        PreferencesManager.shared.toggleHotkeyEnabled = newValue
+        if newValue {
+            HotkeyManager.shared.startMonitoring()
+        } else {
+            HotkeyManager.shared.stopMonitoring()
+        }
+    }
+
+    @objc func showHotkeyRecorderPanel() {
+        // Close existing panel if any
+        hotkeyRecorderPanel?.close()
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 320, height: 120),
+            styleMask: [.titled, .closable, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "Record Hotkey"
+        panel.isFloatingPanel = true
+        panel.becomesKeyOnlyIfNeeded = false
+        panel.level = .floating
+        panel.center()
+
+        // Retain the panel
+        hotkeyRecorderPanel = panel
+
+        let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 320, height: 120))
+
+        let label = NSTextField(labelWithString: "Press a key combination:")
+        label.frame = NSRect(x: 20, y: 80, width: 280, height: 20)
+        contentView.addSubview(label)
+
+        let recorderView = HotkeyRecorderView(frame: NSRect(x: 20, y: 35, width: 280, height: 35))
+        recorderView.setDisplayString(HotkeyManager.shared.currentHotkeyDisplayString())
+        recorderView.onHotkeyRecorded = { [weak self, weak panel] keyCode, modifiers in
+            // Temporarily save the new hotkey settings
+            let oldKeyCode = PreferencesManager.shared.toggleHotkeyKeyCode
+            let oldModifiers = PreferencesManager.shared.toggleHotkeyModifiers
+            let wasEnabled = PreferencesManager.shared.toggleHotkeyEnabled
+
+            PreferencesManager.shared.toggleHotkeyKeyCode = keyCode
+            PreferencesManager.shared.toggleHotkeyModifiers = modifiers.rawValue
+            PreferencesManager.shared.toggleHotkeyEnabled = true
+
+            // Attempt to register the hotkey
+            let success = HotkeyManager.shared.restartMonitoring()
+
+            if success {
+                // Registration succeeded, close panel after delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    panel?.close()
+                    self?.hotkeyRecorderPanel = nil
+                }
+            } else {
+                // Registration failed, revert to old settings
+                PreferencesManager.shared.toggleHotkeyKeyCode = oldKeyCode
+                PreferencesManager.shared.toggleHotkeyModifiers = oldModifiers
+                PreferencesManager.shared.toggleHotkeyEnabled = wasEnabled
+                if wasEnabled {
+                    HotkeyManager.shared.restartMonitoring()
+                }
+
+                // Show error to user
+                self?.showError("Could not register hotkey. It may be in use by another application.")
+                recorderView.setDisplayString(HotkeyManager.shared.currentHotkeyDisplayString())
+            }
+        }
+        recorderView.onRecordingCancelled = { [weak self, weak panel] in
+            panel?.close()
+            self?.hotkeyRecorderPanel = nil
+        }
+        contentView.addSubview(recorderView)
+
+        panel.contentView = contentView
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        panel.makeFirstResponder(recorderView)
     }
 
     @objc func toggleLaunchAtLogin() {

@@ -16,6 +16,7 @@
 		AADDDDDDDDDDDDDDDDDDDD1 /* CircularContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */; };
 		AAFFFFF00000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFFFFF00000000000002 /* main.swift */; };
 		AAAUD10000000000000001 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAUD10000000000000002 /* AudioManager.swift */; };
+		AAHKEY0000000000000001 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAHKEY0000000000000002 /* HotkeyManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularContentView.swift; sourceTree = "<group>"; };
 		AAFFFFF00000000000002 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		AAAUD10000000000000002 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		AAHKEY0000000000000002 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +74,7 @@
 				AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */,
 				AA8888888888888888888888 /* MenuBarController.swift */,
 				AAAAAAAAAAAAAAAAAAAAAAA /* PreferencesManager.swift */,
+				AAHKEY0000000000000002 /* HotkeyManager.swift */,
 				AACCCCCCCCCCCCCCCCCCCC /* Assets.xcassets */,
 				AADDDDDDDDDDDDDDDDDDDDD /* Info.plist */,
 			);
@@ -155,6 +158,7 @@
 				AADDDDDDDDDDDDDDDDDDDD1 /* CircularContentView.swift in Sources */,
 				AA7777777777777777777777 /* MenuBarController.swift in Sources */,
 				AA9999999999999999999999 /* PreferencesManager.swift in Sources */,
+				AAHKEY0000000000000001 /* HotkeyManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
