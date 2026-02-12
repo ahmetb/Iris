@@ -7,54 +7,40 @@ All features from design documents 00-05 have been implemented and are ready for
 ## 📋 Requirements
 
 1. **macOS 13.0+**
-2. **Full Xcode** (download from Mac App Store)
-   - Not just Command Line Tools
-   - Required for building macOS apps
+2. **Swift toolchain** (included with Xcode or Command Line Tools)
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Local Development)
 
-### 1. Install Xcode
-
-If you haven't already:
+The fastest way to build and run locally is with Swift Package Manager:
 
 ```bash
-# Option 1: Mac App Store
-# Search for "Xcode" and install
-
-# Option 2: Check if already installed
-xcode-select -p
-
-# If you only have Command Line Tools, you need full Xcode
+cd /path/to/iris
+swift run
 ```
 
-### 2. Configure Xcode
+This builds a debug binary and launches the app. No Xcode IDE required.
+
+To build without running:
 
 ```bash
-# Set the developer directory
-sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-
-# Accept license (if needed)
-sudo xcodebuild -license accept
+swift build
 ```
 
-### 3. Build the App
+### Release Build (Xcode)
 
-```bash
-cd /Users/abalkan/oss/iris
-./build.sh
-```
+For a proper `.app` bundle with icons and code signing, use the Xcode build:
 
-### 4. Run the App
-
-```bash
-./run.sh
-```
-
-Or manually:
-
-```bash
-open Iris/build/Build/Products/Release/Iris.app
-```
+1. Install full Xcode from the Mac App Store
+2. Configure it:
+   ```bash
+   sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+   sudo xcodebuild -license accept
+   ```
+3. Build and run:
+   ```bash
+   ./build.sh
+   ./run.sh
+   ```
 
 ## 🎯 First Launch
 
@@ -158,9 +144,8 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
 ## 🐛 Known Limitations
 
-- Requires full Xcode (cannot build with Command Line Tools alone)
+- `swift run` builds a bare executable (no `.app` bundle, no app icons). Use `./build.sh` for a full release build.
 - Launch at login requires macOS 13+
-- Uses emoji (👁) for menu bar icon (custom icon can be added)
 
 ## 🎉 You're Ready!
 
