@@ -34,7 +34,6 @@ class MenuBarController: NSObject {
     private var statusItem: NSStatusItem?
     private weak var circularWindow: CircularWindow?
     private var cameraManager: CameraManager
-    private var audioManager: AudioManager?
     private var currentIconStyle: MenuBarIconStyle = .almondEye
     private var hotkeyRecorderPanel: NSPanel?
 
@@ -57,10 +56,6 @@ class MenuBarController: NSObject {
             name: .AVCaptureDeviceWasDisconnected,
             object: nil
         )
-    }
-
-    func setAudioManager(_ audioManager: AudioManager) {
-        self.audioManager = audioManager
     }
 
     deinit {
@@ -550,12 +545,6 @@ class MenuBarController: NSObject {
         cameraMenuItem.submenu = cameraSubmenu
         menu.addItem(cameraMenuItem)
 
-        // Sound indicator submenu
-        let microphoneMenuItem = NSMenuItem(title: "Sound Indicator", action: nil, keyEquivalent: "")
-        let microphoneSubmenu = createMicrophoneSubmenu()
-        microphoneMenuItem.submenu = microphoneSubmenu
-        menu.addItem(microphoneMenuItem)
-
         // Mirror View toggle
         let mirrorItem = NSMenuItem(
             title: "Mirror View",
@@ -632,67 +621,6 @@ class MenuBarController: NSObject {
             }
 
             menu.addItem(item)
-        }
-
-        return menu
-    }
-
-    private func createMicrophoneSubmenu() -> NSMenu {
-        let menu = NSMenu()
-
-        let currentDevice = audioManager?.currentDevice
-
-        // Disable indicator option
-        let disabledItem = NSMenuItem(
-            title: "Disable Indicator",
-            action: #selector(selectMicrophone(_:)),
-            keyEquivalent: ""
-        )
-        disabledItem.target = self
-        disabledItem.representedObject = AudioDevice.disabled
-        if currentDevice?.uid == "disabled" {
-            disabledItem.state = .on
-        }
-        menu.addItem(disabledItem)
-
-        menu.addItem(NSMenuItem.separator())
-
-        // System Default option
-        let defaultItem = NSMenuItem(
-            title: "System Default",
-            action: #selector(selectMicrophone(_:)),
-            keyEquivalent: ""
-        )
-        defaultItem.target = self
-        defaultItem.representedObject = AudioDevice.systemDefault
-        if currentDevice?.uid == "system-default" {
-            defaultItem.state = .on
-        }
-        menu.addItem(defaultItem)
-
-        let microphones = AudioManager.availableMicrophones()
-
-        if !microphones.isEmpty {
-            menu.addItem(NSMenuItem.separator())
-
-            for mic in microphones {
-                let item = NSMenuItem(
-                    title: mic.name,
-                    action: #selector(selectMicrophone(_:)),
-                    keyEquivalent: ""
-                )
-                item.target = self
-                item.representedObject = mic
-
-                // Checkmark for current microphone (only if not using system default or disabled)
-                if currentDevice?.uid != "system-default" &&
-                   currentDevice?.uid != "disabled" &&
-                   mic.id == currentDevice?.id {
-                    item.state = .on
-                }
-
-                menu.addItem(item)
-            }
         }
 
         return menu
@@ -794,22 +722,6 @@ class MenuBarController: NSObject {
                 // Show error alert on main thread
                 await MainActor.run {
                     self.showError("Failed to switch camera: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    @objc func selectMicrophone(_ sender: NSMenuItem) {
-        guard let device = sender.representedObject as? AudioDevice else { return }
-        guard let audioManager = audioManager else { return }
-
-        Task {
-            do {
-                try await audioManager.switchToMicrophone(device)
-            } catch {
-                // Show error alert on main thread
-                await MainActor.run {
-                    self.showError("Failed to switch microphone: \(error.localizedDescription)")
                 }
             }
         }
@@ -923,9 +835,6 @@ class MenuBarController: NSObject {
     @objc func quit() {
         // Clean up camera resources
         cameraManager.stopSession()
-
-        // Clean up audio resources
-        audioManager?.stopMonitoring()
 
         // Quit app
         NSApplication.shared.terminate(nil)

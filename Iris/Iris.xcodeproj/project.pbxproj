@@ -15,7 +15,6 @@
 		AABBBBBBBBBBBBBBBBBBBBB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AACCCCCCCCCCCCCCCCCCCC /* Assets.xcassets */; };
 		AADDDDDDDDDDDDDDDDDDDD1 /* CircularContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */; };
 		AAFFFFF00000000000001 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFFFFF00000000000002 /* main.swift */; };
-		AAAUD10000000000000001 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAUD10000000000000002 /* AudioManager.swift */; };
 		AAHKEY0000000000000001 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAHKEY0000000000000002 /* HotkeyManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -31,7 +30,6 @@
 		AAEEEEEEEEEEEEEEEEEEEE /* Iris.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Iris.entitlements; sourceTree = "<group>"; };
 		AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularContentView.swift; sourceTree = "<group>"; };
 		AAFFFFF00000000000002 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		AAAUD10000000000000002 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
 		AAHKEY0000000000000002 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -69,7 +67,6 @@
 				AAFFFFF00000000000002 /* main.swift */,
 				AA2222222222222222222222 /* AppDelegate.swift */,
 				AA4444444444444444444444 /* CameraManager.swift */,
-				AAAUD10000000000000002 /* AudioManager.swift */,
 				AA6666666666666666666666 /* CircularWindow.swift */,
 				AADDDDDDDDDDDDDDDDDDDD2 /* CircularContentView.swift */,
 				AA8888888888888888888888 /* MenuBarController.swift */,
@@ -153,7 +150,6 @@
 				AAFFFFF00000000000001 /* main.swift in Sources */,
 				AA1111111111111111111111 /* AppDelegate.swift in Sources */,
 				AA3333333333333333333333 /* CameraManager.swift in Sources */,
-				AAAUD10000000000000001 /* AudioManager.swift in Sources */,
 				AA5555555555555555555555 /* CircularWindow.swift in Sources */,
 				AADDDDDDDDDDDDDDDDDDDD1 /* CircularContentView.swift in Sources */,
 				AA7777777777777777777777 /* MenuBarController.swift in Sources */,

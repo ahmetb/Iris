@@ -49,7 +49,7 @@ fi
 cd Iris
 
 # Build the project with ad-hoc code signing
-# This allows macOS to remember camera/microphone permissions between launches
+# This allows macOS to remember camera permissions between launches
 echo "Building Release configuration..."
 xcodebuild \
     -project Iris.xcodeproj \

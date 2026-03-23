@@ -24,8 +24,6 @@
     <true/>
     <key>NSCameraUsageDescription</key>
     <string>Iris needs camera access to display your webcam feed.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Iris uses microphone to display audio visualization around the window.</string>
     <key>NSMainStoryboardFile</key>
     <string></string>
     <key>NSPrincipalClass</key>

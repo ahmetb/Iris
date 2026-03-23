@@ -5,14 +5,12 @@ class CircularWindow: NSWindow {
 
     private let circularView: ResizableCircularView
     private var cameraManager: CameraManager
-    private var audioManager: AudioManager?
 
     // Menu provider for right-click context menu
     var menuProvider: (() -> NSMenu?)?
 
-    init(cameraManager: CameraManager, audioManager: AudioManager? = nil, size: CGFloat = 200) {
+    init(cameraManager: CameraManager, size: CGFloat = 200) {
         self.cameraManager = cameraManager
-        self.audioManager = audioManager
 
         let savedPosition = PreferencesManager.shared.windowPosition
         let screenRect = NSScreen.main?.visibleFrame ?? .zero
@@ -41,7 +39,6 @@ class CircularWindow: NSWindow {
 
         configureWindow()
         setupVideoPreview()
-        setupAudioVisualization()
     }
 
     private func configureWindow() {
@@ -65,20 +62,9 @@ class CircularWindow: NSWindow {
         circularView.setPreviewLayer(previewLayer)
     }
 
-    private func setupAudioVisualization() {
-        // Set up audio level callback to update waveform
-        audioManager?.audioLevelCallback = { [weak self] level in
-            self?.circularView.updateAudioLevel(level)
-        }
-    }
-
     func show() {
         self.orderFrontRegardless()
         cameraManager.startSession()
-
-        // Start audio visualization
-        audioManager?.startMonitoring()
-        circularView.startWaveAnimation()
 
         // Apply mirror setting
         circularView.setMirrored(PreferencesManager.shared.mirrorView)
@@ -87,10 +73,6 @@ class CircularWindow: NSWindow {
     func hide() {
         self.orderOut(nil)
         cameraManager.stopSession()
-
-        // Stop audio visualization
-        audioManager?.stopMonitoring()
-        circularView.stopWaveAnimation()
     }
 
     func setMirrored(_ mirrored: Bool) {

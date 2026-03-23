@@ -3,7 +3,6 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var cameraManager: CameraManager!
-    private var audioManager: AudioManager!
     private var circularWindow: CircularWindow?
     private var menuBarController: MenuBarController!
 
@@ -14,13 +13,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         cameraManager = CameraManager()
         debugLog("CameraManager initialized")
 
-        // Initialize audio manager
-        audioManager = AudioManager()
-        debugLog("AudioManager initialized")
-
         // Initialize menu bar controller immediately (so user sees the icon)
         menuBarController = MenuBarController(cameraManager: cameraManager)
-        menuBarController.setAudioManager(audioManager)
         debugLog("MenuBarController initialized")
         menuBarController.setupMenuBar()
         debugLog("Menu bar setup complete")
@@ -36,21 +30,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 try await cameraManager.setup(with: nil)
 
-                // Setup audio (but don't fail if denied - just no visualization)
-                do {
-                    try await audioManager.setup()
-                    debugLog("AudioManager setup complete")
-                } catch {
-                    debugLog("AudioManager setup failed (optional): \(error)")
-                }
-
                 // Initialize window on main thread
                 await MainActor.run {
                     // Restore or use default size
                     let size = PreferencesManager.shared.windowSize
                     circularWindow = CircularWindow(
                         cameraManager: cameraManager,
-                        audioManager: audioManager,
                         size: size
                     )
 
@@ -88,9 +73,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Cleanup camera resources
         cameraManager?.stopSession()
-
-        // Cleanup audio resources
-        audioManager?.stopMonitoring()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
