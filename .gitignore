@@ -4,6 +4,7 @@
 
 # Xcode
 Iris/.build/
+Iris/build/
 xcuserdata/
 *.xcuserstate
 DerivedData/
