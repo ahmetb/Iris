@@ -21,6 +21,7 @@ class PreferencesManager {
         static let toggleHotkeyEnabled = "com.iris.app.toggleHotkeyEnabled"
         static let toggleHotkeyKeyCode = "com.iris.app.toggleHotkeyKeyCode"
         static let toggleHotkeyModifiers = "com.iris.app.toggleHotkeyModifiers"
+        static let menuBarIconStyle = "com.iris.app.menuBarIconStyle"
     }
 
     // MARK: - Window Size
@@ -45,6 +46,14 @@ class PreferencesManager {
             defaults.set(Double(newValue.x), forKey: Keys.windowX)
             defaults.set(Double(newValue.y), forKey: Keys.windowY)
         }
+    }
+
+    /// True once a window position has been explicitly stored. Distinguishes a
+    /// real saved origin (which may legitimately be negative on displays left
+    /// of or below the main screen) from the 0,0 default.
+    var hasSavedWindowPosition: Bool {
+        defaults.object(forKey: Keys.windowX) != nil
+            && defaults.object(forKey: Keys.windowY) != nil
     }
 
     // MARK: - Window Visibility
@@ -141,6 +150,20 @@ class PreferencesManager {
         }
         set {
             defaults.set(Int(newValue), forKey: Keys.toggleHotkeyModifiers)
+        }
+    }
+
+    // MARK: - Menu Bar Icon Style
+    var menuBarIconStyle: Int {
+        get {
+            // Default to almond eye (raw value 3) when unset
+            if defaults.object(forKey: Keys.menuBarIconStyle) == nil {
+                return 3
+            }
+            return defaults.integer(forKey: Keys.menuBarIconStyle)
+        }
+        set {
+            defaults.set(newValue, forKey: Keys.menuBarIconStyle)
         }
     }
 
