@@ -582,6 +582,12 @@ class MenuBarController: NSObject {
 
         menu.addItem(NSMenuItem.separator())
 
+        // Current version (disabled, informational)
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        let versionItem = NSMenuItem(title: "Version \(version)", action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+
         // Check for updates (Sparkle)
         if let updaterController {
             let updateItem = NSMenuItem(
