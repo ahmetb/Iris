@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Build Release
+        run: |
+          cd Iris
+          xcodebuild \
+            -project Iris.xcodeproj \
+            -scheme Iris \
+            -configuration Release \
+            -derivedDataPath build \
+            clean build \
+            CODE_SIGN_IDENTITY="-"
+
+      - name: Verify Sparkle framework is embedded
+        run: |
+          APP="Iris/build/Build/Products/Release/Iris.app"
+          test -d "$APP/Contents/Frameworks/Sparkle.framework" || {
+            echo "::error::Sparkle.framework not embedded in app bundle"
+            exit 1
+          }
+          echo "Sparkle.framework embedded OK"

@@ -1,6 +1,7 @@
 import Cocoa
 import AVFoundation
 import ServiceManagement
+import Sparkle
 
 // MARK: - Menu Bar Icon Styles
 enum MenuBarIconStyle: Int, CaseIterable {
@@ -36,6 +37,7 @@ class MenuBarController: NSObject {
     private var cameraManager: CameraManager
     private var currentIconStyle: MenuBarIconStyle = .almondEye
     private var hotkeyRecorderPanel: NSPanel?
+    var updaterController: SPUStandardUpdaterController?
 
     // MARK: - Initialization
     init(cameraManager: CameraManager) {
@@ -579,6 +581,17 @@ class MenuBarController: NSObject {
         menu.addItem(hotkeyMenuItem)
 
         menu.addItem(NSMenuItem.separator())
+
+        // Check for updates (Sparkle)
+        if let updaterController {
+            let updateItem = NSMenuItem(
+                title: "Check for Updates…",
+                action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+                keyEquivalent: ""
+            )
+            updateItem.target = updaterController
+            menu.addItem(updateItem)
+        }
 
         // Quit
         let quitItem = NSMenuItem(

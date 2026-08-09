@@ -1,10 +1,19 @@
 import Cocoa
+import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var cameraManager: CameraManager!
     private var circularWindow: CircularWindow?
     private var menuBarController: MenuBarController!
+
+    // Sparkle updater: starts on init, performs scheduled checks, and backs
+    // the "Check for Updates…" menu item.
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         debugLog("applicationDidFinishLaunching started")
@@ -15,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Initialize menu bar controller immediately (so user sees the icon)
         menuBarController = MenuBarController(cameraManager: cameraManager)
+        menuBarController.updaterController = updaterController
         debugLog("MenuBarController initialized")
         menuBarController.setupMenuBar()
         debugLog("Menu bar setup complete")
