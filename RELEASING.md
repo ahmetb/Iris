@@ -5,34 +5,20 @@ This document describes how to create and publish releases for Iris.app.
 ## Overview
 
 Releases are fully automated via GitHub Actions. When you push a version tag, the workflow will:
-1. Build the app on a macOS runner
-2. Create a zip archive
-3. Calculate SHA256 checksum
-4. Update the Homebrew cask formula
-5. Publish a GitHub Release with the zip attached
+1. Stamp the tag version into `Info.plist` (`CFBundleShortVersionString` and `CFBundleVersion`)
+2. Build the app on a macOS runner
+3. Create a zip archive
+4. Calculate SHA256 checksum
+5. Sign the zip with the Sparkle EdDSA key and regenerate `appcast.xml` (for in-app updates)
+6. Update the Homebrew cask formula
+7. Publish a GitHub Release with the zip attached
 
 ## Creating a Release
 
-### Step 1: Update Version Numbers
+There is no manual version bump: the version in `Iris/Iris/Info.plist` is a
+placeholder that CI overwrites from the tag name.
 
-Before creating a release, update the version in `Iris/Iris/Info.plist`:
-
-```xml
-<key>CFBundleShortVersionString</key>
-<string>1.0.0</string>  <!-- Update this -->
-<key>CFBundleVersion</key>
-<string>1</string>  <!-- Increment this for each build -->
-```
-
-### Step 2: Commit Changes
-
-```bash
-git add Iris/Iris/Info.plist
-git commit -m "Bump version to 1.0.0"
-git push
-```
-
-### Step 3: Create and Push Tag
+### Create and Push Tag
 
 ```bash
 # Create the tag (use semantic versioning: vMAJOR.MINOR.PATCH)
@@ -53,15 +39,32 @@ git push origin v1.0.0
 
 The `.github/workflows/release.yml` workflow:
 
-1. **Builds the app** using `xcodebuild` on macOS
-2. **Creates zip archive** named `Iris-vX.X.X.zip`
-3. **Calculates SHA256** checksum of the zip file
-4. **Updates the cask** (`Casks/iris.rb`) with new version and SHA256
-5. **Commits the cask update** back to the repo
-6. **Creates GitHub Release** with:
+1. **Stamps the version** from the tag into `Iris/Iris/Info.plist`
+2. **Builds the app** using `xcodebuild` on macOS
+3. **Creates zip archive** named `Iris-vX.X.X.zip`
+4. **Calculates SHA256** checksum of the zip file
+5. **Signs the zip** with the Sparkle EdDSA private key (`SPARKLE_ED_PRIVATE_KEY`
+   repo secret) and **generates `appcast.xml`** so existing installs are offered
+   the update in-app
+6. **Updates the cask** (`Casks/iris.rb`) with new version and SHA256
+7. **Commits the cask + appcast update** back to the repo
+8. **Creates GitHub Release** with:
    - The zip file attached
    - Auto-generated release notes
    - Installation instructions
+
+### Sparkle Update Signing
+
+In-app updates are delivered by [Sparkle](https://sparkle-project.org/) (see
+`design/09-check-for-updates.md`). Signing key facts:
+
+- The private key is a base64 ed25519 seed stored in two places: the
+  `SPARKLE_ED_PRIVATE_KEY` GitHub Actions secret, and the maintainer's login
+  keychain as "Private key for signing Sparkle updates" (export with
+  `generate_keys -x <file>` from the Sparkle distribution).
+- The matching public key is `SUPublicEDKey` in `Iris/Iris/Info.plist`.
+- If the secret is missing, the release workflow fails on purpose — a release
+  without a signed appcast entry would strand in-app updaters.
 
 ### Homebrew Cask Update
 

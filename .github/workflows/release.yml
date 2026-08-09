@@ -31,6 +31,23 @@ jobs:
           echo "Available SDKs:"
           xcodebuild -showsdks | grep macosx
 
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${{ github.ref_name }}"
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Stamp version into Info.plist
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          plutil -replace CFBundleShortVersionString -string "$VERSION" Iris/Iris/Info.plist
+          plutil -replace CFBundleVersion -string "$VERSION" Iris/Iris/Info.plist
+          plutil -lint Iris/Iris/Info.plist
+          echo "Stamped version $VERSION into Info.plist"
+
       - name: Build Release
         run: |
           cd Iris
@@ -68,14 +85,64 @@ jobs:
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
           echo "SHA256: $SHA256"
 
-      - name: Extract version from tag
-        id: version
+      - name: Download Sparkle signing tools
         run: |
-          VERSION="${{ github.ref_name }}"
-          # Remove 'v' prefix if present
-          VERSION=${VERSION#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+          SPARKLE_VERSION="2.9.5"
+          SPARKLE_SHA256="015336b601493e05c237964954bff6191370003d94edefe663724c88840d73cc"
+          curl -fsSL -o sparkle.tar.xz \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          echo "${SPARKLE_SHA256}  sparkle.tar.xz" | shasum -a 256 -c -
+          mkdir -p sparkle-dist
+          tar -xf sparkle.tar.xz -C sparkle-dist
+          ./sparkle-dist/bin/sign_update --help > /dev/null
+
+      - name: Sign update and generate appcast
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SPARKLE_ED_PRIVATE_KEY" ]; then
+            echo "::error::SPARKLE_ED_PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ github.ref_name }}"
+          ZIP="Iris/build/Build/Products/Release/Iris-${TAG}.zip"
+
+          # Outputs: sparkle:edSignature="..." length="..."
+          ENCLOSURE_ATTRS=$(echo "$SPARKLE_ED_PRIVATE_KEY" | ./sparkle-dist/bin/sign_update --ed-key-file - "$ZIP")
+          echo "Enclosure attributes: $ENCLOSURE_ATTRS"
+
+          PUB_DATE=$(LC_ALL=C date -u +"%a, %d %b %Y %H:%M:%S +0000")
+
+          cat > appcast.xml <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>Iris</title>
+              <link>https://raw.githubusercontent.com/ahmetb/Iris/main/appcast.xml</link>
+              <description>Updates for Iris</description>
+              <language>en</language>
+              <item>
+                <title>Version ${VERSION}</title>
+                <link>https://github.com/ahmetb/Iris/releases/tag/${TAG}</link>
+                <sparkle:fullReleaseNotesLink>https://github.com/ahmetb/Iris/releases/tag/${TAG}</sparkle:fullReleaseNotesLink>
+                <sparkle:version>${VERSION}</sparkle:version>
+                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+                <pubDate>${PUB_DATE}</pubDate>
+                <enclosure
+                  url="https://github.com/ahmetb/Iris/releases/download/${TAG}/Iris-${TAG}.zip"
+                  ${ENCLOSURE_ATTRS}
+                  type="application/octet-stream"/>
+              </item>
+            </channel>
+          </rss>
+          EOF
+
+          echo "Generated appcast.xml:"
+          cat appcast.xml
+          xmllint --noout appcast.xml
 
       - name: Update Homebrew cask
         run: |
@@ -93,7 +160,7 @@ jobs:
           echo "Updated cask:"
           cat Casks/iris.rb
 
-      - name: Commit cask update
+      - name: Commit cask and appcast update
         run: |
           # Determine default branch - try multiple methods
           DEFAULT_BRANCH=""
@@ -132,12 +199,12 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/iris.rb
+          git add Casks/iris.rb appcast.xml
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update Homebrew cask to ${{ steps.version.outputs.version }}"
+            git commit -m "Update Homebrew cask and appcast to ${{ steps.version.outputs.version }}"
             git push origin "$CURRENT_BRANCH"
           fi
 
@@ -175,3 +242,7 @@ jobs:
             5. Click "Open" in the security dialog
 
             > ⚠️ macOS may show a warning because the app isn't notarized. This is normal for open-source apps distributed outside the Mac App Store.
+
+            ### Automatic Updates
+
+            Iris checks for new versions automatically (via [Sparkle](https://sparkle-project.org/)) and offers to install them in place. You can also trigger a check from the menu bar icon → "Check for Updates…". Versions 0.2.1 and older don't have the updater — upgrade manually (or `brew upgrade --cask iris`) once to get on the update train.

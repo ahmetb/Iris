@@ -28,5 +28,11 @@
     <string></string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/ahmetb/Iris/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>CncDH4t1DXL4V7jj/e11jRPtiFZFsC1aIQ3EKWqWMNI=</string>
 </dict>
 </plist>
