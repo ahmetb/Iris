@@ -83,26 +83,66 @@ If you need to create a release manually (without GitHub Actions):
 ./build.sh
 ```
 
-### 2. Create Zip Archive
+`build.sh` signs the app automatically:
+
+- If a **"Developer ID Application"** identity is present in your keychain, the
+  app is signed with it and built with Hardened Runtime (required for
+  notarization). The Team ID is derived from the identity automatically.
+- Otherwise it falls back to **ad-hoc** signing, which still works locally but
+  makes Gatekeeper warn end users.
+
+Overrides (optional):
+
+```bash
+IRIS_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./build.sh
+IRIS_TEAM_ID=TEAMID ./build.sh
+```
+
+### 2. Notarize (optional but recommended)
+
+Notarization lets macOS launch the app without a Gatekeeper warning. It
+requires a Developer ID signed build (step 1) and a one-time notarytool
+credential profile.
+
+One-time setup (App Store Connect API key, recommended):
+
+```bash
+xcrun notarytool store-credentials iris-notarization \
+  --key    /path/to/AuthKey_XXXXXXXXXX.p8 \
+  --key-id XXXXXXXXXX \
+  --issuer <ISSUER_UUID>
+```
+
+Then, after each build:
+
+```bash
+./notarize.sh
+```
+
+This zips the app, submits it to Apple, waits for the result, and staples the
+ticket to `Iris.app`. See the header of `notarize.sh` for Apple ID / app-specific
+password setup as an alternative to the API key.
+
+### 3. Create Zip Archive
 
 ```bash
 cd Iris/build/Build/Products/Release
 zip -r -y "Iris-v1.0.0.zip" Iris.app
 ```
 
-### 3. Calculate SHA256
+### 4. Calculate SHA256
 
 ```bash
 shasum -a 256 Iris-v1.0.0.zip
 ```
 
-### 4. Update Homebrew Cask
+### 5. Update Homebrew Cask
 
 Edit `Casks/iris.rb`:
 - Update `version` to match your release
-- Update `sha256` with the checksum from step 3
+- Update `sha256` with the checksum from step 4
 
-### 5. Create GitHub Release
+### 6. Create GitHub Release
 
 1. Go to https://github.com/ahmetb/Iris/releases/new
 2. Create a new tag: `v1.0.0`

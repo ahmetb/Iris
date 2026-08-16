@@ -48,15 +48,41 @@ fi
 # Navigate to project directory
 cd Iris
 
-# Build the project with ad-hoc code signing
-# This allows macOS to remember camera permissions between launches
+# Signing: use a "Developer ID Application" identity if one is available in the
+# keychain (or if IRIS_SIGN_IDENTITY is set), otherwise fall back to ad-hoc
+# signing. Ad-hoc signing still lets macOS remember camera permissions between
+# launches; a real Developer ID is only required for notarized distribution.
+detect_developer_id() {
+    security find-identity -v -p codesigning 2>/dev/null \
+        | awk -F\" '/Developer ID Application/ {print $2; exit}'
+}
+
+SIGN_IDENTITY="${IRIS_SIGN_IDENTITY:-$(detect_developer_id)}"
+
 echo "Building Release configuration..."
-xcodebuild \
-    -project Iris.xcodeproj \
-    -scheme Iris \
-    -configuration Release \
-    clean build \
-    CODE_SIGN_IDENTITY="-"
+if [ -n "$SIGN_IDENTITY" ] && [ "$SIGN_IDENTITY" != "-" ]; then
+    # Derive the Team ID from the identity string "... (TEAMID)" unless overridden.
+    TEAM_ID="${IRIS_TEAM_ID:-$(echo "$SIGN_IDENTITY" | sed -n 's/.*(\([A-Z0-9]*\))$/\1/p')}"
+    echo "🔏 Signing with Developer ID: $SIGN_IDENTITY (team ${TEAM_ID:-unknown})"
+    echo "   Hardened Runtime enabled (required for notarization)."
+    xcodebuild \
+        -project Iris.xcodeproj \
+        -scheme Iris \
+        -configuration Release \
+        clean build \
+        CODE_SIGN_STYLE=Manual \
+        CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+        DEVELOPMENT_TEAM="$TEAM_ID" \
+        ENABLE_HARDENED_RUNTIME=YES
+else
+    echo "🔏 No Developer ID found — using ad-hoc signing (Gatekeeper will warn users)."
+    xcodebuild \
+        -project Iris.xcodeproj \
+        -scheme Iris \
+        -configuration Release \
+        clean build \
+        CODE_SIGN_IDENTITY="-"
+fi
 
 echo "✅ Build complete!"
 echo "Built app location: ~/Library/Developer/Xcode/DerivedData/Iris-*/Build/Products/Release/Iris.app"
