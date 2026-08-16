@@ -16,7 +16,7 @@ class CircularWindow: NSWindow {
         let screenRect = NSScreen.main?.visibleFrame ?? .zero
 
         let origin: CGPoint
-        if savedPosition.x > 0 && savedPosition.y > 0 {
+        if PreferencesManager.shared.hasSavedWindowPosition {
             let savedRect = CGRect(origin: savedPosition, size: CGSize(width: size, height: size))
             if NSScreen.screens.contains(where: { $0.visibleFrame.intersects(savedRect) }) {
                 origin = savedPosition
