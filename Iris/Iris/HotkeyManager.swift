@@ -76,7 +76,7 @@ class HotkeyManager {
             return false
         }
 
-        var hotKeyIDVar = HotkeyManager.hotKeyID
+        let hotKeyIDVar = HotkeyManager.hotKeyID
         let registerStatus = RegisterEventHotKey(UInt32(keyCode), carbonModifiers, hotKeyIDVar, GetApplicationEventTarget(), 0, &hotKeyRef)
 
         guard registerStatus == noErr else {

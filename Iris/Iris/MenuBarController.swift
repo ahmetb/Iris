@@ -42,6 +42,7 @@ class MenuBarController: NSObject {
     // MARK: - Initialization
     init(cameraManager: CameraManager) {
         self.cameraManager = cameraManager
+        self.currentIconStyle = MenuBarIconStyle(rawValue: PreferencesManager.shared.menuBarIconStyle) ?? .almondEye
         super.init()
 
         // Observe camera device changes
@@ -512,6 +513,7 @@ class MenuBarController: NSObject {
 
     @objc func cycleIconStyle() {
         currentIconStyle = currentIconStyle.next
+        PreferencesManager.shared.menuBarIconStyle = currentIconStyle.rawValue
         updateMenuBarIcon()
         debugLog("Icon style changed to: \(currentIconStyle.displayName)")
     }
@@ -751,6 +753,7 @@ class MenuBarController: NSObject {
     @objc func selectIconStyle(_ sender: NSMenuItem) {
         guard let style = MenuBarIconStyle(rawValue: sender.tag) else { return }
         currentIconStyle = style
+        PreferencesManager.shared.menuBarIconStyle = style.rawValue
         updateMenuBarIcon()
         debugLog("Icon style changed to: \(style.displayName)")
     }
